@@ -1,567 +1,368 @@
----
-name: User Story
-about: Create a user story
-title: ''
-labels: ''
-assignees: ''
+# User Story Template
+
+**Title:**
+_As a [user role], I want [feature/goal], so that [reason]._
+
+**Acceptance Criteria:**
+1. [Criteria 1]
+2. [Criteria 2]
+3. [Criteria 3]
+
+**Priority:** [High/Medium/Low]
+
+**Story Points:** [Estimated Effort in Points]
+
+**Notes:**
+- [Additional information or edge cases]
+
 ---
 
 # Smart Clinic Management System — User Stories
 
-These stories describe planned functionality, not completed implementation. Administrator and doctor dashboards use React and communicate with the Spring Boot REST API.
+These stories describe planned functionality, not completed implementation. Priorities and story points are initial estimates for team review; points represent relative effort, not days.
 
-## ADM-01 — Access the administrator dashboard
+## Administrator Stories
 
-**As a** administrator
+### ADM-01
 
-**I need** to sign in with my credentials
+**Title:** Sign in as an administrator
 
-**So that** I can manage the clinic through a protected dashboard
+_As an administrator, I want to sign in with my username and password, so that I can securely manage the platform._
 
-### Details and Assumptions
+**Acceptance Criteria:**
 
-- The React dashboard communicates with the Spring Boot REST API.
-- Administrative permissions must be enforced on the server.
+1. Valid credentials for an active administrator account open the administrator dashboard.
+2. Invalid credentials display an error and do not grant access.
+3. The server denies administrative operations to unauthenticated users and users without the administrator role.
 
-### Acceptance Criteria
+**Priority:** High
 
-```gherkin
-Feature: Access the administrator dashboard
+**Story Points:** 3
 
-  Scenario: Successful sign-in
-    Given I have an active administrator account
-    When I submit valid credentials
-    Then the administrator dashboard opens
+**Notes:**
 
-  Scenario: Invalid credentials
-    Given I am on the sign-in page
-    When I submit invalid credentials
-    Then an error is displayed and access is denied
+- The dashboard uses React and the Spring Boot REST API; hiding interface controls does not replace server authorization.
 
-  Scenario: Role enforcement
-    Given I am signed in without the administrator role
-    When I request an administrative operation through the API
-    Then the server denies the operation
-```
+### ADM-02
 
-## ADM-02 — Manage doctors
+**Title:** Sign out as an administrator
 
-**As a** administrator
+_As an administrator, I want to sign out of the portal, so that I can protect access to the system._
 
-**I need** to add doctors and edit their profiles, specialties, and contact details
+**Acceptance Criteria:**
 
-**So that** I can keep the clinic directory up to date
+1. A sign-out action is available from the administrator dashboard.
+2. Signing out ends the current authenticated session and returns the user to the sign-in page.
+3. Reusing the ended session or navigating back does not grant access to protected operations.
 
-### Details and Assumptions
+**Priority:** High
 
-- Doctor accounts require a unique sign-in identifier.
-- Required profile fields must be validated before saving.
+**Story Points:** 2
 
-### Acceptance Criteria
+**Notes:**
 
-```gherkin
-Feature: Manage doctors
+- The backend must reject credentials associated with the ended session according to the chosen session or token invalidation mechanism.
 
-  Scenario: Save a doctor profile
-    Given I am signed in as an administrator
-    When I save a valid new or updated doctor profile
-    Then the saved details appear in the doctor list
+### ADM-03
 
-  Scenario: Reject invalid profiles
-    Given I am editing a doctor profile
-    When I omit a required field
-    Then validation errors are displayed and the profile is not saved
+**Title:** Add a doctor
 
-  Scenario: Reject duplicate accounts
-    Given a doctor account already uses a sign-in identifier
-    When I create another account with that identifier
-    Then the duplicate account is rejected
-```
+_As an administrator, I want to add doctors to the portal, so that patients can find and book appointments with clinic practitioners._
 
-## ADM-03 — Manage user access
+**Acceptance Criteria:**
 
-**As a** administrator
+1. An authenticated administrator can submit a doctor profile with the required account details, specialty, and contact information.
+2. Missing or invalid required fields and duplicate account identifiers are rejected with clear validation messages.
+3. A successfully saved doctor appears in the doctor directory.
 
-**I need** to block and restore user access
+**Priority:** High
 
-**So that** I can control who uses the system
+**Story Points:** 3
 
-### Details and Assumptions
+**Notes:**
 
-- Blocking an account preserves appointment history and medical records.
-- Access checks also apply to previously issued sessions.
+- Doctor profiles are stored in MySQL. A new profile does not imply availability until working slots are configured.
 
-### Acceptance Criteria
+### ADM-04
 
-```gherkin
-Feature: Manage user access
+**Title:** Remove a doctor profile
 
-  Scenario: Block access
-    Given a user has an active account and session
-    When I block the account
-    Then new sign-ins and protected requests using the existing session are denied
-    And the appointment history and medical records are preserved
+_As an administrator, I want to remove a doctor profile from the portal, so that patients no longer book with a doctor who has left the clinic._
 
-  Scenario: Restore access
-    Given a user account is blocked
-    When I restore access
-    Then the user can sign in again with valid credentials
-```
+**Acceptance Criteria:**
 
-## ADM-04 — Review clinic appointments
+1. The administrator must confirm removal of the selected doctor profile.
+2. After removal, the profile is absent from the public directory and the server rejects new bookings for that doctor.
+3. Existing medical history is preserved, and future appointments are flagged for review rather than silently deleted.
 
-**As a** administrator
+**Priority:** High
 
-**I need** to filter appointments by doctor, date, and status
+**Story Points:** 3
 
-**So that** I can coordinate clinic operations
+**Notes:**
 
-### Details and Assumptions
+- Assumption: removal from the portal uses archival or soft deletion to preserve references to past visits. Future appointments need an explicit cancellation or rescheduling workflow.
 
-- Each appointment displays its patient, doctor, time, and status.
-- Filters can be combined and reset.
+### ADM-05
 
-### Acceptance Criteria
+**Title:** Count monthly appointments using MySQL CLI
 
-```gherkin
-Feature: Review clinic appointments
+_As an administrator, I want to execute a stored procedure in MySQL CLI that counts appointments for a selected month, so that I can track platform usage._
 
-  Scenario: Apply filters
-    Given clinic appointments exist
-    When I apply doctor, date, and status filters
-    Then only matching appointments are displayed with their patient, doctor, time, and status
+**Acceptance Criteria:**
 
-  Scenario: Reset filters
-    Given appointment filters are active
-    When I reset the filters
-    Then the unfiltered appointment list is displayed
+1. An authorized database operator can call the documented stored procedure from MySQL CLI with a year and month.
+2. The result contains the number of appointments whose scheduled start is within that calendar month, including zero when none exist.
+3. Invalid month or year inputs are rejected; appointments outside the selected month are excluded.
 
-  Scenario: No matching appointments
-    Given no appointments match my filters
-    When I view the results
-    Then a clear empty-state message is displayed
-```
+**Priority:** Medium
 
-## ADM-05 — Stop new bookings for a doctor
+**Story Points:** 3
 
-**As a** administrator
+**Notes:**
 
-**I need** to disable new bookings for a doctor who no longer accepts patients
+- Assumptions: count all appointment statuses by scheduled start time using the clinic time zone and a start-inclusive, next-month-exclusive interval. Database access is separate from portal authentication; procedure name and supported year range will be documented during implementation.
 
-**So that** patients can book only available practitioners
+## Patient Stories
 
-### Details and Assumptions
+### PAT-01
 
-- Making a doctor inactive does not delete existing appointments or history.
-- Future appointments require review for rescheduling or cancellation.
+**Title:** Browse doctors without signing in
 
-### Acceptance Criteria
+_As a patient, I want to browse the doctor directory without signing in, so that I can explore my options before registering._
 
-```gherkin
-Feature: Stop new bookings for a doctor
+**Acceptance Criteria:**
 
-  Scenario: Deactivate a doctor
-    Given a doctor has future appointments
-    When I disable new bookings for that doctor
-    Then patients cannot create new appointments with the doctor
-    And existing appointments and history remain available
-    And future appointments requiring review are displayed
-```
+1. An unauthenticated visitor can open the doctor directory.
+2. The directory shows active doctors and their public names, specialties, and clinic contact information.
+3. An empty directory displays a helpful message; private account and patient data are never included in the public response.
 
-## PAT-01 — Register and sign in
+**Priority:** High
 
-**As a** patient
+**Story Points:** 2
 
-**I need** to create an account and sign in to my dashboard
+**Notes:**
 
-**So that** I can manage my appointments independently
+- Viewing the directory is public; booking an appointment requires authentication.
 
-### Details and Assumptions
+### PAT-02
 
-- Registration requires valid mandatory fields and a unique sign-in identifier.
-- Patients can access only their own appointment records.
+**Title:** Register a patient account
 
-### Acceptance Criteria
+_As a patient, I want to register with my email address and password, so that I can book appointments._
 
-```gherkin
-Feature: Register and sign in
+**Acceptance Criteria:**
 
-  Scenario: Register and sign in
-    Given I provide valid registration details with an unused sign-in identifier
-    When I register and sign in with my credentials
-    Then my patient dashboard opens
+1. A valid unused email address and a password meeting the stated requirements create a patient account.
+2. Invalid email addresses, missing fields, and duplicate email addresses produce validation messages without creating an account.
+3. Passwords are stored as secure password hashes and are not included in API responses.
 
-  Scenario: Reject invalid registration
-    Given I am on the registration page
-    When I omit required details or use an existing sign-in identifier
-    Then registration is rejected with a validation message
+**Priority:** High
 
-  Scenario: Protect other patients
-    Given I am signed in as a patient
-    When I request another patient's appointments through the interface or API
-    Then access is denied
-```
+**Story Points:** 3
 
-## PAT-02 — Find a doctor and available time
+**Notes:**
 
-**As a** patient
+- Password requirements must be displayed on the registration form. Registration assigns the patient role and cannot be used to obtain administrator or doctor privileges.
 
-**I need** to search by doctor name and specialty and view available slots for a date
+### PAT-03
 
-**So that** I can choose a convenient appointment
+**Title:** Sign in as a patient
 
-### Details and Assumptions
+_As a patient, I want to sign in to the portal, so that I can manage my appointments._
 
-- Only active doctors are available for booking.
-- Past and occupied slots cannot be selected.
+**Acceptance Criteria:**
 
-### Acceptance Criteria
+1. Valid credentials for an active patient account open the patient dashboard.
+2. Invalid credentials do not grant access and display an error.
+3. Authenticated patients can access only their own appointments, including through direct API requests.
 
-```gherkin
-Feature: Find a doctor and available time
+**Priority:** High
 
-  Scenario: Search availability
-    Given active doctors have available slots
-    When I search by name and specialty and select a date
-    Then matching active doctors and their available future slots are displayed
-    And occupied and past slots cannot be selected
+**Story Points:** 3
 
-  Scenario: No available slots
-    Given no slots are available for my selection
-    When I view the search results
-    Then I am prompted to choose another date or doctor
-```
+**Notes:**
 
-## PAT-03 — Book an appointment
+- Patients sign in using the email address and password supplied during registration.
 
-**As a** patient
+### PAT-04
 
-**I need** to reserve an available slot with a selected doctor
+**Title:** Sign out as a patient
 
-**So that** I can receive a consultation
+_As a patient, I want to sign out of the portal, so that I can protect my account._
 
-### Details and Assumptions
+**Acceptance Criteria:**
 
-- The doctor, date, and time are shown before confirmation.
-- The server checks availability again when saving and prevents double booking.
+1. A sign-out action is available from the patient dashboard.
+2. Signing out ends the current session and returns the patient to the sign-in page.
+3. Protected account and appointment requests using the ended session are rejected.
 
-### Acceptance Criteria
+**Priority:** High
 
-```gherkin
-Feature: Book an appointment
+**Story Points:** 2
 
-  Scenario: Confirm a booking
-    Given I am signed in and have selected a free slot
-    When I review the doctor, date, and time and confirm the booking
-    Then the appointment is saved and appears in my dashboard
+**Notes:**
 
-  Scenario: Handle concurrent booking
-    Given another patient reserves my selected slot before my booking is saved
-    When I confirm the booking
-    Then no duplicate booking is created
-    And I am asked to select another slot
-```
+- The interface clears patient-specific state on sign-out so it is not shown to the next user of the same browser.
 
-## PAT-04 — View my appointments
+### PAT-05
 
-**As a** patient
+**Title:** Book a one-hour appointment
 
-**I need** to view upcoming and past appointments
+_As a patient, I want to sign in and book a one-hour appointment with a doctor, so that I can receive a medical consultation._
 
-**So that** I can track my schedule and visit history
+**Acceptance Criteria:**
 
-### Details and Assumptions
+1. Unauthenticated users are asked to sign in before confirming an appointment.
+2. An authenticated patient can select and confirm a future available slot lasting exactly 60 minutes; the doctor, date, start time, and end time are shown before confirmation.
+3. The server rechecks availability when saving, prevents overlapping bookings for the doctor, and displays the saved appointment or a conflict message.
 
-- Appointment details include doctor, date, time, and status.
-- Upcoming visits are separated from completed and cancelled visits.
+**Priority:** High
 
-### Acceptance Criteria
+**Story Points:** 5
 
-```gherkin
-Feature: View my appointments
+**Notes:**
 
-  Scenario: Review appointments
-    Given I am signed in and have appointments with different statuses
-    When I open my appointment list
-    Then only my appointments are displayed with their doctor, date, time, and status
-    And upcoming appointments are separated from completed and cancelled appointments
-```
+- The entire hour must fit within the doctor’s availability and must not overlap an absence or existing booking. Concurrent requests must not reserve the same slot.
 
-## PAT-05 — Reschedule or cancel an appointment
+### PAT-06
 
-**As a** patient
+**Title:** View upcoming appointments
 
-**I need** to reschedule or cancel my future appointments
+_As a patient, I want to view my upcoming appointments, so that I can prepare for my visits._
 
-**So that** I can change my plans without contacting the clinic
+**Acceptance Criteria:**
 
-### Details and Assumptions
+1. The authenticated patient sees only their own future, non-cancelled appointments, ordered by start time.
+2. Each appointment displays the doctor, specialty, date, start time, end time, and status.
+3. When no upcoming appointments exist, a clear empty-state message is displayed.
 
-- Only available future slots can be used for rescheduling.
-- Failed rescheduling preserves the original appointment.
-- Completed and cancelled appointments cannot be rescheduled or cancelled again.
+**Priority:** High
 
-### Acceptance Criteria
+**Story Points:** 2
 
-```gherkin
-Feature: Reschedule or cancel an appointment
+**Notes:**
 
-  Scenario: Reschedule successfully
-    Given I have a future appointment and another slot is available
-    When I move the appointment to that slot
-    Then the new time is saved and the original slot is released
+- Display the applicable time zone consistently. Completed and cancelled appointments are excluded from the upcoming list.
 
-  Scenario: Preserve a booking on failure
-    Given I have a future appointment
-    When a rescheduling attempt fails
-    Then the original appointment remains unchanged and an error is displayed
+## Doctor Stories
 
-  Scenario: Confirm cancellation
-    Given I have a future appointment
-    When I request cancellation and confirm it
-    Then the status changes to cancelled and the slot becomes available
+### DOC-01
 
-  Scenario: Reject invalid changes
-    Given my appointment is completed or cancelled
-    When I attempt to reschedule or cancel it
-    Then the operation is rejected
-```
+**Title:** Sign in as a doctor
 
-## PAT-06 — View my prescriptions
+_As a doctor, I want to sign in to the portal, so that I can manage my appointments._
 
-**As a** patient
+**Acceptance Criteria:**
 
-**I need** to read prescriptions issued after my appointments
+1. Valid credentials for an active doctor account open the doctor dashboard.
+2. Invalid credentials or an inactive account do not grant access.
+3. The server restricts doctor operations to the authenticated doctor’s permitted records.
 
-**So that** I can follow my doctor's treatment instructions
+**Priority:** High
 
-### Details and Assumptions
+**Story Points:** 3
 
-- Prescriptions show the doctor, issue date, medication, dosage, and instructions.
-- Patients have read-only access to their own prescriptions.
+**Notes:**
 
-### Acceptance Criteria
+- Doctor accounts are provisioned by an administrator; public patient registration does not grant doctor access.
 
-```gherkin
-Feature: View my prescriptions
+### DOC-02
 
-  Scenario: Read prescriptions
-    Given a prescription has been issued to me
-    When I open it in my dashboard
-    Then the doctor, issue date, medication, dosage, and instructions are displayed
+**Title:** Sign out as a doctor
 
-  Scenario: Enforce prescription access
-    Given I am signed in as a patient
-    When I attempt to edit a prescription or read another patient's prescription
-    Then the server denies the request
+_As a doctor, I want to sign out of the portal, so that I can protect my data._
 
-  Scenario: No prescriptions
-    Given I have no prescriptions
-    When I open my prescription list
-    Then a clear empty-state message is displayed
-```
+**Acceptance Criteria:**
 
-## DOC-01 — Access the doctor dashboard
+1. A sign-out action is available from the doctor dashboard.
+2. Signing out ends the current session and returns the doctor to the sign-in page.
+3. Requests for protected schedules and patient details using the ended session are rejected.
 
-**As a** doctor
+**Priority:** High
 
-**I need** to sign in to my personal dashboard
+**Story Points:** 2
 
-**So that** I can work with my schedule and patients
+**Notes:**
 
-### Details and Assumptions
+- Clear patient details and schedule data from interface state on sign-out.
 
-- Protected operations require an active account with the doctor role.
-- Signing out ends access through the current session.
+### DOC-03
 
-### Acceptance Criteria
+**Title:** View my appointment calendar
 
-```gherkin
-Feature: Access the doctor dashboard
+_As a doctor, I want to view my appointment calendar, so that I can stay organized._
 
-  Scenario: Sign in
-    Given I have an active doctor account
-    When I submit valid credentials
-    Then my doctor dashboard opens
+**Acceptance Criteria:**
 
-  Scenario: Enforce access checks
-    Given my account is inactive or lacks the doctor role
-    When I request a protected doctor operation
-    Then the server denies access
+1. An authenticated doctor can select a date or date range in the calendar.
+2. Appointments for the selected period show the patient, start and end times, and status, in chronological order.
+3. The calendar displays an empty state when no appointments exist, and API requests cannot expose another doctor’s calendar without authorization.
 
-  Scenario: Sign out
-    Given I am signed in as a doctor
-    When I sign out and attempt to reuse the session
-    Then protected access is denied
-```
+**Priority:** High
 
-## DOC-02 — Manage availability
+**Story Points:** 3
 
-**As a** doctor
+**Notes:**
 
-**I need** to set working hours and periods of absence
+- Use the same clinic time zone as the booking interface. Cancelled appointments must be clearly identified if displayed.
 
-**So that** patients can book only when I am available
+### DOC-04
 
-### Details and Assumptions
+**Title:** Mark periods of unavailability
 
-- Working intervals must not overlap and must end after they start.
-- Availability changes must not silently cancel existing appointments.
+_As a doctor, I want to mark periods when I am unavailable, so that patients see only time slots when I can accept appointments._
 
-### Acceptance Criteria
+**Acceptance Criteria:**
 
-```gherkin
-Feature: Manage availability
+1. The doctor can save an absence with a start and end time, and the end must be later than the start.
+2. Slots overlapping a saved absence are excluded from patient booking options and rejected by the booking API.
+3. If an absence conflicts with an existing appointment, the system reports the conflict and does not silently cancel or overwrite the appointment.
 
-  Scenario: Update availability
-    Given I am signed in as a doctor and my changes do not conflict with appointments
-    When I save valid working hours and periods of absence
-    Then the booking interface reflects the updated availability
+**Priority:** High
 
-  Scenario: Reject invalid intervals
-    Given I am editing my availability
-    When I enter overlapping intervals or an end time that is not after the start
-    Then the changes are rejected with a validation message
+**Story Points:** 5
 
-  Scenario: Handle existing appointments
-    Given my proposed availability change conflicts with an existing appointment
-    When I try to save it
-    Then the conflict is reported and the appointment is not automatically cancelled
-```
+**Notes:**
 
-## DOC-03 — View my schedule
+- Assumption: conflicting absence changes are blocked until existing appointments are resolved. The server must also handle concurrent absence and booking requests.
 
-**As a** doctor
+### DOC-05
 
-**I need** to view my appointments for a selected date
+**Title:** Update my doctor profile
 
-**So that** I can prepare for consultations
+_As a doctor, I want to update my specialty and contact information, so that patients have accurate information about me._
 
-### Details and Assumptions
+**Acceptance Criteria:**
 
-- Appointments are ordered by time and include the patient and status.
-- The server enforces access to schedules independently of API parameters.
+1. An authenticated doctor can edit their own specialty and public contact information.
+2. Missing required fields and invalid contact details are rejected with validation messages.
+3. Successfully saved changes appear in the public directory; attempts to edit another doctor’s profile without permission are rejected.
 
-### Acceptance Criteria
+**Priority:** Medium
 
-```gherkin
-Feature: View my schedule
+**Story Points:** 3
 
-  Scenario: Select a date
-    Given I am signed in as a doctor
-    When I select a date in my schedule
-    Then my appointments for that date are displayed in time order with their patient and status
+**Notes:**
 
-  Scenario: Protect other schedules
-    Given I do not have permission to view another doctor's schedule
-    When I modify API parameters to request it
-    Then access is denied
-```
+- Only intended public clinic contact information is published. Profile editing does not permit changing account roles or privileges.
 
-## DOC-04 — View patient medical history
+### DOC-06
 
-**As a** doctor
+**Title:** View patient details for upcoming appointments
 
-**I need** to review permitted medical records for a patient booked with me
+_As a doctor, I want to view patient details for my upcoming appointments, so that I can prepare for consultations._
 
-**So that** I can consider previous visits and prescriptions during treatment
+**Acceptance Criteria:**
 
-### Details and Assumptions
+1. The doctor can open relevant patient details from an upcoming appointment assigned to them.
+2. The displayed details identify the patient and include available information needed to prepare; missing optional information is clearly indicated.
+3. The server denies access to patient details when the doctor does not have permission, including when API identifiers are changed manually.
 
-- Medical history is opened from an appointment.
-- The server checks access to the selected patient.
+**Priority:** High
 
-### Acceptance Criteria
+**Story Points:** 3
 
-```gherkin
-Feature: View patient medical history
+**Notes:**
 
-  Scenario: Review history
-    Given I am authorized to access a patient booked with me
-    When I open the medical history from the appointment
-    Then previous visit dates and associated prescriptions are displayed
-
-  Scenario: No history
-    Given an authorized patient has no medical history
-    When I open the history
-    Then a clear empty-state message is displayed
-
-  Scenario: Reject unauthorized access
-    Given I am not authorized to access a patient's records
-    When I request that patient's medical history
-    Then the server denies access
-```
-
-## DOC-05 — Complete an appointment
-
-**As a** doctor
-
-**I need** to save consultation results and mark an appointment as completed
-
-**So that** I can maintain a treatment history
-
-### Details and Assumptions
-
-- Doctors may update only appointments they are authorized to manage.
-- Cancelled appointments cannot be completed.
-
-### Acceptance Criteria
-
-```gherkin
-Feature: Complete an appointment
-
-  Scenario: Save consultation results
-    Given I am authorized to manage an active appointment
-    When I save consultation results and complete the appointment
-    Then the results are available for later review and the status is completed
-
-  Scenario: Handle saving errors
-    Given I am completing an appointment
-    When saving the consultation results fails
-    Then an error is displayed and the interface does not report successful completion
-
-  Scenario: Reject cancelled appointments
-    Given an appointment is cancelled
-    When I try to mark it completed
-    Then the operation is rejected
-
-  Scenario: Reject unauthorized updates
-    Given I am not authorized to manage an appointment
-    When I attempt to update it
-    Then the server denies the operation
-```
-
-## DOC-06 — Issue a prescription
-
-**As a** doctor
-
-**I need** to issue a prescription after a consultation
-
-**So that** the patient receives clear treatment instructions
-
-### Details and Assumptions
-
-- Each prescription is linked to a patient, doctor, and appointment.
-- Medication, dosage, and instructions are required.
-
-### Acceptance Criteria
-
-```gherkin
-Feature: Issue a prescription
-
-  Scenario: Save a prescription
-    Given I am authorized to manage the patient's appointment
-    When I submit a prescription with medication, dosage, and instructions
-    Then the prescription is saved with its patient, doctor, and appointment links
-    And it is available to the authorized doctor and the patient
-
-  Scenario: Validate required fields
-    Given I am writing a prescription
-    When I omit medication, dosage, or instructions
-    Then validation errors are displayed and the prescription is not saved
-
-  Scenario: Handle saving errors
-    Given I submit a valid prescription
-    When the save operation fails
-    Then an error is displayed and the interface does not report successful issuance
-```
+- Patient details are protected and never included in the public doctor directory. The exact fields and scope of medical-history access must be agreed before implementation.
