@@ -81,7 +81,7 @@ _As an administrator, I want to add doctors to the portal, so that patients can 
 
 **Notes:**
 
-- Doctor profiles are stored in MySQL. A new profile does not imply availability until working slots are configured.
+- Doctor profiles are stored in PostgreSQL. A new profile does not imply availability until working slots are configured.
 
 ### ADM-04
 
@@ -105,13 +105,13 @@ _As an administrator, I want to remove a doctor profile from the portal, so that
 
 ### ADM-05
 
-**Title:** Count monthly appointments using MySQL CLI
+**Title:** Count monthly appointments using psql
 
-_As an administrator, I want to execute a stored procedure in MySQL CLI that counts appointments for a selected month, so that I can track platform usage._
+_As an administrator, I want to execute a stored procedure in psql that counts appointments for a selected month, so that I can track platform usage._
 
 **Acceptance Criteria:**
 
-1. An authorized database operator can call the documented stored procedure from MySQL CLI with a year and month.
+1. An authorized database operator can call the documented stored procedure from psql with a year and month.
 2. The result contains the number of appointments whose scheduled start is within that calendar month, including zero when none exist.
 3. Invalid month or year inputs are rejected; appointments outside the selected month are excluded.
 
@@ -121,7 +121,7 @@ _As an administrator, I want to execute a stored procedure in MySQL CLI that cou
 
 **Notes:**
 
-- Assumptions: count all appointment statuses by scheduled start time using the clinic time zone and a start-inclusive, next-month-exclusive interval. Database access is separate from portal authentication; procedure name and supported year range will be documented during implementation.
+- Assumptions: count all appointment statuses by scheduled start time using the clinic time zone and a start-inclusive, next-month-exclusive interval. Database access is separate from portal authentication; the PostgreSQL procedure will return the count via an OUT BIGINT parameter using CALL in psql; its name and supported year range will be documented during implementation.
 
 ## Patient Stories
 
