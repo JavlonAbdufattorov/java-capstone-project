@@ -57,6 +57,7 @@ private String specialty;
 //      - The @Size(min = 3, max = 50) annotation ensures that the specialty name is between 3 and 50 characters long.
 @NonNull 
 @Email 
+@jakarta.persistence.Column(unique = true)
 private String email;
 // 4. 'email' field:
 //    - Type: private String

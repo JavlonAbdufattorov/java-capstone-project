@@ -15,6 +15,7 @@ public class Admin {
     private Long id;
 
     @NotNull(message = "username cannot be null")
+    @jakarta.persistence.Column(unique = true)
     private String username;
 
     @NotNull(message = "password cannot be null")

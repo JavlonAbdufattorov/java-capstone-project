@@ -35,6 +35,7 @@ private String name; // Patient's full name
 
 @NotNull 
 @Email
+@jakarta.persistence.Column(unique = true)
 private String email; // Patient's email address
 // 3. 'email' field:
 //    - Type: private String
@@ -44,6 +45,7 @@ private String email; // Patient's email address
 //      - The @Email annotation validates that the email address follows a valid email format (e.g., patient@example.com).
 @NotNull 
 @Size (min = 6)
+@com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
 private String password; // Patient's password for login authentication
 // 4. 'password' field:
 //    - Type: private String
@@ -53,6 +55,7 @@ private String password; // Patient's password for login authentication
 //      - The @Size(min = 6) annotation ensures that the password must be at least 6 characters long.
 @NotNull 
 @Pattern (regexp = "^[0-9]{10}$")
+@jakarta.persistence.Column(unique = true)
 private String phone; // Patient's phone number
 // 5. 'phone' field:
 //    - Type: private String

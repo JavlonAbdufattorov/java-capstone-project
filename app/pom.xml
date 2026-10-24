@@ -28,8 +28,20 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<maven.compiler.release>17</maven.compiler.release>
+		<!-- Mockito inline mocks need Java 25-compatible bytecode instrumentation. -->
+		<byte-buddy.version>1.17.5</byte-buddy.version>
 	</properties>
 	<dependencies>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
 
 	    <dependency>
           <groupId>org.springframework.boot</groupId>

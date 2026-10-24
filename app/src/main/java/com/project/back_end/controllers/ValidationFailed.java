@@ -12,6 +12,15 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ValidationFailed {
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleStatus(org.springframework.web.server.ResponseStatusException ex) {
+        return ResponseEntity.status(ex.getStatusCode()).body(Map.of("message", ex.getReason() == null ? "Request failed" : ex.getReason()));
+    }
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConflict() {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Record conflicts with existing data"));
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {

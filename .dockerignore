@@ -1,0 +1,5 @@
+**
+!app/
+!app/pom.xml
+!app/src/
+!app/src/**
